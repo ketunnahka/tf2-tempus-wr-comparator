@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/ketunnahka/tf2-tempus-wr-comparator/static/css/main.d7282704.css",
+    "main.js": "/ketunnahka/tf2-tempus-wr-comparator/static/js/main.6c25db75.js",
+    "static/js/453.eba9707c.chunk.js": "/ketunnahka/tf2-tempus-wr-comparator/static/js/453.eba9707c.chunk.js",
+    "index.html": "/ketunnahka/tf2-tempus-wr-comparator/index.html",
+    "main.d7282704.css.map": "/ketunnahka/tf2-tempus-wr-comparator/static/css/main.d7282704.css.map",
+    "main.6c25db75.js.map": "/ketunnahka/tf2-tempus-wr-comparator/static/js/main.6c25db75.js.map",
+    "453.eba9707c.chunk.js.map": "/ketunnahka/tf2-tempus-wr-comparator/static/js/453.eba9707c.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.d7282704.css",
+    "static/js/main.6c25db75.js"
+  ]
+}
