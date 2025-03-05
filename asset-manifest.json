@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/tf2-tempus-wr-comparator/static/css/main.d7282704.css",
-    "main.js": "/tf2-tempus-wr-comparator/static/js/main.9cfffd47.js",
+    "main.js": "/tf2-tempus-wr-comparator/static/js/main.90618c6a.js",
     "static/js/453.eba9707c.chunk.js": "/tf2-tempus-wr-comparator/static/js/453.eba9707c.chunk.js",
     "index.html": "/tf2-tempus-wr-comparator/index.html",
     "main.d7282704.css.map": "/tf2-tempus-wr-comparator/static/css/main.d7282704.css.map",
-    "main.9cfffd47.js.map": "/tf2-tempus-wr-comparator/static/js/main.9cfffd47.js.map",
+    "main.90618c6a.js.map": "/tf2-tempus-wr-comparator/static/js/main.90618c6a.js.map",
     "453.eba9707c.chunk.js.map": "/tf2-tempus-wr-comparator/static/js/453.eba9707c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.d7282704.css",
-    "static/js/main.9cfffd47.js"
+    "static/js/main.90618c6a.js"
   ]
 }
