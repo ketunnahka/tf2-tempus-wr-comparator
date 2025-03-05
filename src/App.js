@@ -14,6 +14,11 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [playersReady, setPlayersReady] = useState(false);
   const [customVideoUrl, setCustomVideoUrl] = useState(""); // New optional input
+  const ALLOWED_CHANNELS = [
+    "UCV34MoxMwB6CAagbisQKKmw", // Tempus Archive
+    "UC3dQqjaLsbiqQE0QSWl1Wfg"  // Tempus Records
+  ];
+
 
   const checkPlayersReady = useCallback(() => {
     const video1El = document.getElementById('video1');
@@ -21,7 +26,7 @@ function App() {
 
     // Explicitly check if both iframes exist and players are initialized
     if (video1El && video2El && player1 && player2) {
-      console.log("Both players are definitively ready!");
+      console.log("Both players are ready.");
       setPlayersReady(true);
     } else {
       console.log("Players not ready. Checking:", {
@@ -35,12 +40,8 @@ function App() {
   }, [player1, player2]);
 
   useEffect(() => {
-    // Add a periodic check to ensure players are ready
-    const readinessInterval = setInterval(checkPlayersReady, 500);
-
-    // Cleanup interval when component unmounts
-    return () => clearInterval(readinessInterval);
-  }, [checkPlayersReady]);
+    checkPlayersReady(); // Run check immediately
+  }, [player1, player2]); // ✅ Only runs when `player1` or `player2` changes
 
   useEffect(() => {
     // Load YouTube Iframe API script
@@ -135,26 +136,85 @@ function App() {
     }
   };
 
-  const handleFetchVideos = () => {
-    const videoId = extractVideoId(videoUrl);
-    if (!videoId) return;
+  const fetchVideoDetails = async (videoId) => {
+    try {
+        const response = await axios.get(
+            `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet&key=${YOUTUBE_API_KEY}`
+        );
 
-    if (customVideoUrl) {
-        console.log("🎯 Using custom WR video:", customVideoUrl);
-        setSecondVideoUrl(customVideoUrl);  // Use user input
-    } else {
-        console.log("🔎 Fetching previous WR from description...");
-        fetchDescription(videoId);  // Use extracted video from description
+        if (!response.data.items.length) {
+            console.error("No video data found.");
+            return null;
+        }
+
+        const video = response.data.items[0].snippet;
+        const channelId = video.channelId;
+        const channelTitle = video.channelTitle;
+        
+        console.log(`Video from: ${channelTitle} (${channelId})`);
+
+        if (!ALLOWED_CHANNELS.includes(channelId)) {
+            console.error("This video is not from an approved Tempus channel.");
+            alert(`Paste a URL from Tempus Archive or Tempus Records.`);
+            return null;
+        }
+
+        return {
+            videoId,
+            description: video.description || "",
+        };
+    } catch (error) {
+        console.error("Error fetching video details:", error.response?.data || error);
+        return null;
     }
+  };
+
+  const handleFetchVideos = async () => {
+    const videoId = extractVideoId(videoUrl);
+    const customVideoId = extractVideoId(customVideoUrl);
+
+    if (!videoId) {
+        console.error("No valid video ID found for main WR.");
+        return;
+    }
+
+    setLoading(true);
+
+    // 🔹 Fetch main WR video details
+    const mainVideoDetails = await fetchVideoDetails(videoId);
+    if (!mainVideoDetails) {
+        setVideoUrl("");  // ❌ Clear video
+        setSecondVideoUrl(""); // ❌ Clear second video
+        setLoading(false);
+        return;
+    }
+
+    setVideoUrl(`https://www.youtube.com/watch?v=${mainVideoDetails.videoId}`);
+
+    // 🔹 If optional WR is provided, fetch details
+    if (customVideoId) {
+        const customVideoDetails = await fetchVideoDetails(customVideoId);
+        if (!customVideoDetails) {
+            setSecondVideoUrl("");  // ❌ Hide the optional WR
+        } else {
+            setSecondVideoUrl(`https://www.youtube.com/watch?v=${customVideoDetails.videoId}`);
+        }
+    } else {
+        // Extract previous WR from description (if no custom WR provided)
+        const firstLink = mainVideoDetails.description.match(/https?:\/\/(www\.)?youtu\.be\/\S+|https?:\/\/(www\.)?youtube\.com\/watch\?v=\S+/);
+        setSecondVideoUrl(firstLink ? firstLink[0] : null);
+    }
+
+    setLoading(false);
   };
 
   const syncVideos = () => {
     if (!playersReady) {
-        console.error("🚨 YouTube players are not fully loaded yet!");
+        console.error("YouTube players are not fully loaded yet.");
         return;
     }
 
-    console.log("⏳ Syncing videos to 3rd second and pausing...");
+    console.log("Syncing videos to 0:00:00...");
     player1.seekTo(3, true);  // 🔹 false prevents auto-play
     player2.seekTo(3, true);
 
@@ -163,37 +223,37 @@ function App() {
         player1.pauseVideo();
         player2.pauseVideo();
     }, 100);
-};
+  };
 
   const pauseVideos = () => {
     if (!playersReady) {
-        console.error("🚨 YouTube players are not fully loaded yet!");
+        console.error("YouTube players are not fully loaded yet.");
         return;
     }
 
-    console.log("⏸️ Pausing both videos...");
+    console.log("Pausing both videos...");
     player1.pauseVideo();
     player2.pauseVideo();
-};
+  };
 
   const resumeVideos = () => {
     if (!playersReady) {
-        console.error("🚨 YouTube players are not fully loaded yet!");
+        console.error("YouTube players are not fully loaded yet.");
         return;
     }
 
-    console.log("▶️ Resuming both videos...");
+    console.log("Resuming both videos...");
     player1.playVideo();
     player2.playVideo();
   };
 
   const syncToZero = () => {
     if (!playersReady) {
-        console.error("🚨 YouTube players are not fully loaded yet!");
+        console.error("YouTube players are not fully loaded yet.");
         return;
     }
 
-    console.log("⏳ Syncing videos to 0th second and pausing...");
+    console.log("Syncing videos to -0:03:00...");
     player1.seekTo(0, true);  
     player2.seekTo(0, true);
 
@@ -202,7 +262,7 @@ function App() {
         player1.pauseVideo();
         player2.pauseVideo();
     }, 100);
-};
+  };
 
   return (
     <div className="App">
@@ -229,16 +289,19 @@ function App() {
             {videoUrl && (
                 <iframe
                     id="video1"
-                    width="720" height="405"  // Bigger Video
+                    width="720"
+                    height="405"
                     src={`https://www.youtube.com/embed/${extractVideoId(videoUrl)}?enablejsapi=1`}
                     frameBorder="0"
                     allowFullScreen
                 ></iframe>
             )}
+            
             {secondVideoUrl && (
                 <iframe
                     id="video2"
-                    width="720" height="405"  // Bigger Video
+                    width="720"
+                    height="405"
                     src={`https://www.youtube.com/embed/${extractVideoId(secondVideoUrl)}?enablejsapi=1`}
                     frameBorder="0"
                     allowFullScreen
@@ -264,6 +327,6 @@ function App() {
     </div>
 )}
     </div>
-);}
+  );}
 
 export default App;
